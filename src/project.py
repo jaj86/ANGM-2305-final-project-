@@ -52,6 +52,35 @@ def random_direction():
     # Return a random movement direction vector
     return random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
 
+class Enemy:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.color = color
+        self.speed = speed
+        self.direction = random_direction()
+        self.timer = 0
+
+    def move(self, level):
+        self.timer += 1
+        if self.timer > 30:  # Change direction every 30 frames
+            self.direction = random_direction()
+            self.timer = 0
+
+        new_x = self.x + self.direction[0] * self.speed
+        new_y = self.y + self.direction[1] * self.speed
+
+        if is_wall(level, new_x, new_y):
+            self.direction = random_direction()
+        else:
+            self.x, self.y = new_x, new_y
+
+    def draw(self, screen):
+        pygame.draw.polygon(screen, RED, [(self.x, self.y - 12), (self.x - 12, self.y + 12), (self.x + 12, self.y + 12)])
+
+    def get_rect(self):
+        return pygame.Rect(self.x - 12, self.y - 12, 24, 24)
+
 def main():
     pygame.init()
     flags = pygame.RESIZABLE
@@ -125,7 +154,7 @@ def main():
             level[row][col] = 0
             score += 10
 
-        # character and walls drawing
+        # characters and walls drawing
         screen.fill(BLACK)
         for row_idx, row in enumerate(level):
             for col_idx, tile in enumerate(row):
@@ -136,7 +165,9 @@ def main():
                 elif tile == 2:
                     pygame.draw.circle(screen, WHITE, (x + TILE_SIZE // 2, y + TILE_SIZE // 2), 4)
 
-        pygame.draw.circle(screen, RED, (player_x, player_y), TILE_SIZE // 2)
+        pygame.draw.circle(screen, GREEN, (player_x, player_y), TILE_SIZE // 2)
+        for enemy in enemies:
+            enemy.draw(screen)
 
         # score
         font = pygame.font.SysFont(None, 30)
