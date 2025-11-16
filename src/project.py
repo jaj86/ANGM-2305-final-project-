@@ -90,9 +90,18 @@ def main():
     clock = pygame.time.Clock()
 
     level = load_level()
+    # player setup
     player_x, player_y = 64, 64
     speed = 3
     score = 0
+    game_over = False
+
+    # Enemies
+    enemies = [
+        Enemy(320, 225, RED, 2),
+        Enemy(640, 224, RED, 2),
+        Enemy(400, 336, RED, 2),
+        ]
 
     running = True
     while running:
@@ -112,27 +121,16 @@ def main():
         if keys[pygame.K_DOWN]:
             new_y += speed
 
-        # enemies setup
-        enemy_direction = random_direction()
-        enemy_x, enemy_y = 320, 224
-        ex, ey = enemy_x, enemy_y
-        enemy_speed = 2
-        enemy_timer = 0
-        game_over = False
-
-        # Enemies
-        enemies = [
-            Enemy(320, 224, RED, 2),
-            Enemy(640, 224, RED, 2),
-            Enemy(320, 448, RED, 2),
-        ]
+        # enemies movement and collision
+        
+        for enemy in enemies:
+            enemy.move(level)
+            if enemy.get_rect().colliderect(pygame.Rect(player_x, player_y, TILE_SIZE, TILE_SIZE)):
+                game_over = True
+                print("Game Over! Final Score:", score)
+                running = False
         
         
-        #collision with enemy
-        if (abs(player_x - enemy_x) < TILE_SIZE) and (abs(player_y - enemy_y) < TILE_SIZE):
-            game_over = True
-            print("Game Over! Final Score:", score)
-            running = False
 
         # Collision Detection 
         col = new_x // TILE_SIZE
