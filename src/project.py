@@ -41,7 +41,7 @@ def load_level():
     return level
 
 def is_wall(level, x, y):
-    """Check if a tile is a wall given pixel coordinates."""
+    # Check if the position (x, y) is a wall
     col = x // TILE_SIZE
     row = y // TILE_SIZE
     if 0 <= row < len(level) and 0 <= col < len(level[0]):
@@ -53,7 +53,7 @@ def random_direction():
     return random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
 
 class Enemy:
-    def __init__(self, x, y):
+    def __init__(self, x, y, color, speed):
         self.x = x
         self.y = y
         self.color = color
@@ -120,20 +120,13 @@ def main():
         enemy_timer = 0
         game_over = False
 
-        # Enemy Movement
-        enemy_timer += 1
-        if enemy_timer > 30:  # Change direction every 30 frames
-            enemy_direction = random_direction()
-            enemy_timer = 0
-
-        ex += enemy_x + enemy_direction[0] * enemy_speed
-        ey += enemy_y + enemy_direction[1] * enemy_speed
-
-        # enemy collision hits walls choose new direction
-        if is_wall(level, ex, ey):
-            enemy_direction = random_direction()
-        else:
-            enemy_x, enemy_y = ex, ey
+        # Enemies
+        enemies = [
+            Enemy(320, 224, RED, 2),
+            Enemy(640, 224, RED, 2),
+            Enemy(320, 448, RED, 2),
+        ]
+        
         
         #collision with enemy
         if (abs(player_x - enemy_x) < TILE_SIZE) and (abs(player_y - enemy_y) < TILE_SIZE):
