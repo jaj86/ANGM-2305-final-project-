@@ -47,7 +47,7 @@ def is_wall(level, x, y):
     return level[row][col] == 1
 
 
-# --- ENEMY ---
+# ENEMY CLASS —
 class Enemy:
     def __init__(self, x, y, color, speed):
         self.x = x
@@ -81,7 +81,7 @@ class Enemy:
         return pygame.Rect(self.x - 12, self.y - 12, 24, 24)
 
 
-# --- MAIN GAME ---
+# MAIN GAME —
 def main():
     pygame.init()
     screen = pygame.display.set_mode((1280, 720), pygame.RESIZABLE)
@@ -105,7 +105,6 @@ def main():
     def can_move(direction):
         dx, dy = direction
 
-        # front of the player circle
         check_x = player_x + dx * (TILE_SIZE // 2 + speed)
         check_y = player_y + dy * (TILE_SIZE // 2 + speed)
 
@@ -125,12 +124,11 @@ def main():
 
     running = True
     while running:
-        # EVENTS
+        # INPUT —
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-        # KEY INPUT (does not move instantly)
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             desired_dir = DIR_LEFT
@@ -141,23 +139,36 @@ def main():
         elif keys[pygame.K_DOWN]:
             desired_dir = DIR_DOWN
 
-        # Are we centered on a tile?
+        # Center check
         on_center = (
             player_x % TILE_SIZE == TILE_SIZE // 2 and
             player_y % TILE_SIZE == TILE_SIZE // 2
         )
 
-        # Turn only when centered
+        # Try turning
         if on_center and can_move(desired_dir):
             current_dir = desired_dir
 
-        # Move forward if possible
+        # Move + anti-sticking fix
         if can_move(current_dir):
             dx, dy = current_dir
             player_x += dx * speed
             player_y += dy * speed
+        else:
+            # NEW — SLIDE FIX
+            dx, dy = current_dir
+            if dx != 0:  # moving horizontally
+                if can_move((0, 1)):
+                    player_y += speed
+                elif can_move((0, -1)):
+                    player_y -= speed
+            else:  # moving vertically
+                if can_move((1, 0)):
+                    player_x += speed
+                elif can_move((-1, 0)):
+                    player_x -= speed
 
-        # ENEMY MOVEMENT
+        # ENEMY MOVEMENT —
         player_rect = pygame.Rect(player_x - 16, player_y - 16, 32, 32)
 
         for enemy in enemies:
@@ -165,17 +176,17 @@ def main():
             if enemy.get_rect().colliderect(player_rect):
                 game_over = True
 
-        # DOTS
+        # DOT COLLECTION —
         col = player_x // TILE_SIZE
         row = player_y // TILE_SIZE
         if level[row][col] == 2:
             level[row][col] = 0
             score += 10
 
-        # DRAW
+        # DRAW —
         screen.fill(BLACK)
 
-        # Walls + dots
+        # Walls and dots
         for r, row_data in enumerate(level):
             for c, tile in enumerate(row_data):
                 x = c * TILE_SIZE
@@ -196,7 +207,7 @@ def main():
         font = pygame.font.SysFont(None, 30)
         screen.blit(font.render(f"Score: {score}", True, WHITE), (10, 10))
 
-        # Game over message
+        # Game over screen
         if game_over:
             msg = font.render("GAME OVER!", True, RED)
             screen.blit(msg, (640 - msg.get_width() // 2, 360 - msg.get_height() // 2))
