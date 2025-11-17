@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import math
 
 TILE_SIZE = 32
 FPS = 60
@@ -133,8 +134,8 @@ def main():
         
 
         # Collision Detection 
-        col = new_x // TILE_SIZE
-        row = new_y // TILE_SIZE
+        col = (new_x + TILE_SIZE // 2) // TILE_SIZE
+        row = (new_y + TILE_SIZE // 2) // TILE_SIZE
         if level[row][col] != 1:  # Not a wall
             player_x, player_y = new_x, new_y
 
@@ -174,7 +175,7 @@ def main():
             running = False
 
         pygame.display.flip()
-        clock.tick(FPS)
+        clock.tick(60)
 
     pygame.quit()
     sys.exit()
