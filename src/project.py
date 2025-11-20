@@ -58,7 +58,7 @@ def can_move(level, x, y, direction, speed):
     new_x = x + dx * speed
     new_y = y + dy * speed
 
-    # 4 corners of the circle hitbox
+    # player hitbox
     corners = [
         (new_x - r, new_y - r),
         (new_x + r, new_y - r),
@@ -105,11 +105,9 @@ class Enemy:
     def get_rect(self):
         return pygame.Rect(self.x - 12, self.y - 12, 24, 24)
 
-    def draw(self, screen):
-        pygame.draw.polygon(
-            screen, RED,
-            [(self.x, self.y - 12), (self.x - 12, self.y + 12), (self.x + 12, self.y + 12)]
-        )
+    def draw(self, screen, sprite):
+        screen.blit(sprite, (self.x - TILE_SIZE//2, self.y - TILE_SIZE//2))
+
 
 
 
@@ -119,17 +117,21 @@ def main():
     pygame.display.set_caption("Maze Game")
     clock = pygame.time.Clock()
 
-    # Load player sprite
+    # player sprite
     player_img = pygame.image.load("player.png").convert_alpha()
     player_img = pygame.transform.scale(player_img, (TILE_SIZE, TILE_SIZE))
 
-# Direction-based sprite rotation
+    # Direction-based sprite rotation
     player_sprites = {
         DIR_RIGHT: player_img,
         DIR_LEFT: pygame.transform.flip(player_img, True, False),
         DIR_UP: pygame.transform.rotate(player_img, 90),
         DIR_DOWN: pygame.transform.rotate(player_img, -90),
     }
+    
+    # enemy sprite
+    enemy_img = pygame.image.load("enemy.png").convert_alpha()
+    enemy_img = pygame.transform.scale(enemy_img, (TILE_SIZE, TILE_SIZE))
 
     level = load_level()
 
@@ -152,7 +154,6 @@ def main():
 
     running = True
     while running:
-        # INPUT
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -172,7 +173,7 @@ def main():
         if on_center and can_move(level, player_x, player_y, desired_dir, speed):
             current_dir = desired_dir
 
-        # MOVEMENT (no sticking)
+        # MOVEMENT 
         if can_move(level, player_x, player_y, current_dir, speed):
             dx, dy = current_dir
             player_x += dx * speed
@@ -223,7 +224,7 @@ def main():
         screen.blit(sprite, (player_x - TILE_SIZE//2, player_y - TILE_SIZE//2))
 
         for enemy in enemies:
-            enemy.draw(screen)
+            enemy.draw(screen, enemy_img)
 
         font = pygame.font.SysFont(None, 30)
         screen.blit(font.render(f"Score: {score}", True, WHITE), (10, 10))
