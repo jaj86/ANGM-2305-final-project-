@@ -119,6 +119,18 @@ def main():
     pygame.display.set_caption("Maze Game")
     clock = pygame.time.Clock()
 
+    # Load player sprite
+    player_img = pygame.image.load("player.png").convert_alpha()
+    player_img = pygame.transform.scale(player_img, (TILE_SIZE, TILE_SIZE))
+
+# Direction-based sprite rotation
+    player_sprites = {
+        DIR_RIGHT: player_img,
+        DIR_LEFT: pygame.transform.flip(player_img, True, False),
+        DIR_UP: pygame.transform.rotate(player_img, 90),
+        DIR_DOWN: pygame.transform.rotate(player_img, -90),
+    }
+
     level = load_level()
 
     # player start bottom row
@@ -207,7 +219,8 @@ def main():
                 elif tile == 2:
                     pygame.draw.circle(screen, WHITE, (x + 16, y + 16), 4)
 
-        pygame.draw.circle(screen, GREEN, (player_x, player_y), TILE_SIZE // 2)
+        sprite = player_sprites[current_dir]
+        screen.blit(sprite, (player_x - TILE_SIZE//2, player_y - TILE_SIZE//2))
 
         for enemy in enemies:
             enemy.draw(screen)
