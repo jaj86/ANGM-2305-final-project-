@@ -86,27 +86,71 @@ class Enemy:
         self.color = color
         self.speed = speed
         self.direction = random.choice([DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT])
-        self.timer = 0
 
-    def move(self, level):
-        self.timer += 1
-        if self.timer > 30:
-            self.direction = random.choice([DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT])
-            self.timer = 0
+    def get_tile_pos(self):
+        return (self.y // TILE_SIZE, self.x // TILE_SIZE)
+
+    def at_tile_center(self):
+        return (self.x % TILE_SIZE == TILE_SIZE // 2 and
+                self.y % TILE_SIZE == TILE_SIZE // 2)
+
+    def chase(self, level, player_tile):
+        row, col = self.get_tile_pos()
+        pr, pc = player_tile
+
+        options = []
+
+        # UP
+        if level[row - 1][col] != 1:
+            dist = abs(pr - (row - 1)) + abs(pc - col)
+            options.append((dist, DIR_UP))
+
+        # DOWN
+        if level[row + 1][col] != 1:
+            dist = abs(pr - (row + 1)) + abs(pc - col)
+            options.append((dist, DIR_DOWN))
+
+        # LEFT
+        if level[row][col - 1] != 1:
+            dist = abs(pr - row) + abs(pc - (col - 1))
+            options.append((dist, DIR_LEFT))
+
+        # RIGHT
+        if level[row][col + 1] != 1:
+            dist = abs(pr - row) + abs(pc - (col + 1))
+            options.append((dist, DIR_RIGHT))
+
+        if not options:
+            return self.direction
+
+        _, best_dir = min(options, key=lambda x: x[0])
+        return best_dir
+
+    def move(self, level, player_tile):
+        # If enemy is centered on tile → choose chase direction
+        if self.at_tile_center():
+            self.direction = self.chase(level, player_tile)
 
         dx, dy = self.direction
         nx = self.x + dx * self.speed
         ny = self.y + dy * self.speed
 
-        if not tile_is_wall(level, nx, ny):
+        # BLOCK WALLS
+        col = nx // TILE_SIZE
+        row = ny // TILE_SIZE
+        if level[row][col] != 1:
             self.x = nx
             self.y = ny
+        else:
+            # If direction blocked → choose new random direction
+            self.direction = random.choice([DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT])
 
     def get_rect(self):
         return pygame.Rect(self.x - 12, self.y - 12, 24, 24)
 
     def draw(self, screen, sprite):
-        screen.blit(sprite, (self.x - TILE_SIZE//2, self.y - TILE_SIZE//2))
+        screen.blit(sprite, (self.x - TILE_SIZE // 2, self.y - TILE_SIZE // 2))
+
 
 
 
@@ -194,10 +238,11 @@ def main():
                     player_x -= speed
 
         # ENEMY
-        player_rect = pygame.Rect(player_x - 16, player_y - 16, 32, 32)
 
+        player_tile = (player_y // TILE_SIZE, player_x // TILE_SIZE)   
+        player_rect = pygame.Rect(player_x - 16, player_y - 16, 32, 32)
         for enemy in enemies:
-            enemy.move(level)
+            enemy.move(level, player_tile)
             if enemy.get_rect().colliderect(player_rect):
                 game_over = True
 
