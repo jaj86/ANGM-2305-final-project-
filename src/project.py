@@ -167,6 +167,10 @@ def main():
     player_img = pygame.image.load("player.png").convert_alpha()
     player_img = pygame.transform.scale(player_img, (TILE_SIZE, TILE_SIZE))
 
+    #Dot sprite
+    dot_img = pygame.image.load("Diamond.png").convert_alpha()
+    dot_img = pygame.transform.scale(dot_img, (10, 10))
+
     # Direction-based sprite rotation
     player_sprites = {
         DIR_RIGHT: player_img,
@@ -275,7 +279,8 @@ def main():
                 if tile == 1:
                     pygame.draw.rect(screen, BLUE, (x, y, TILE_SIZE, TILE_SIZE))
                 elif tile == 2:
-                    pygame.draw.circle(screen, WHITE, (x + 16, y + 16), 4)
+                    screen.blit(dot_img, (x + TILE_SIZE//2 - dot_img.get_width()//2,
+                          y + TILE_SIZE//2 - dot_img.get_height()//2))
 
         sprite = player_sprites[current_dir]
         screen.blit(sprite, (player_x - TILE_SIZE//2, player_y - TILE_SIZE//2))
