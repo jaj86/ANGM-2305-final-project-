@@ -227,18 +227,21 @@ def main():
 
         else:
             # Slide like pacman
-            dx, dy = current_dir
-            if dx != 0:  # horizontal slide
-                if can_move(level, player_x, player_y, (0, 1), speed):
-                    player_y += speed
-                elif can_move(level, player_x, player_y, (0, -1), speed):
-                    player_y -= speed
-            else:  # vertical slide
-                if can_move(level, player_x, player_y, (1, 0), speed):
-                    player_x += speed
-                elif can_move(level, player_x, player_y, (-1, 0), speed):
-                    player_x -= speed
+            on_center = (
+                player_x % TILE_SIZE == TILE_SIZE // 2 and
+                player_y % TILE_SIZE == TILE_SIZE // 2
+            )
 
+            # Apply desired direction if possible
+            if on_center and can_move(level, player_x, player_y, desired_dir, speed):
+                current_dir = desired_dir
+
+        # Move only if the current direction is valid
+            if can_move(level, player_x, player_y, current_dir, speed):
+                dx, dy = current_dir
+                player_x += dx * speed
+                player_y += dy * speed
+        
         # ENEMY
 
         player_tile = (player_y // TILE_SIZE, player_x // TILE_SIZE)   
