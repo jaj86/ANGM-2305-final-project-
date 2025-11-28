@@ -151,6 +151,8 @@ class Enemy:
     def draw(self, screen, sprite):
         screen.blit(sprite, (self.x - TILE_SIZE // 2, self.y - TILE_SIZE // 2))
 
+dot_respawn_time = {}
+DOT_RESPAWN_DELAY = 5000  # milliseconds
 
 
 
@@ -252,6 +254,13 @@ def main():
         if level[row][col] == 2:
             level[row][col] = 0
             score += 10
+            dot_respawn_time[(row, col)] = pygame.time.get_ticks()
+
+        current_time = pygame.time.get_ticks()
+        for (r, c), t in list(dot_respawn_time.items()):
+            if current_time - t > DOT_RESPAWN_DELAY:
+                level[r][c] = 2
+                del dot_respawn_time[(r, c)]
 
         # DRAW
         screen.fill(BLACK)
