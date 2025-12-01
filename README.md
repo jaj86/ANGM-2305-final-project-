@@ -1,7 +1,7 @@
 # ANGM-2305-final-project - Jewel Collector
 
 ## Demo
-Demo Video: 
+Demo Video: https://youtu.be/LucJ9OPZ24o
 
 ## Github Repository
 Github Repo: https://github.com/jaj86/ANGM-2305-final-project-
