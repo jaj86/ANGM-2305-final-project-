@@ -135,7 +135,7 @@ DOT_RESPAWN_DELAY = 5000  # ms
 def main():
     pygame.init()
     screen = pygame.display.set_mode((1280, 720), pygame.RESIZABLE)
-    pygame.display.set_caption("Maze Game")
+    pygame.display.set_caption("Jewel Collector")
     clock = pygame.time.Clock()
 
     # player sprite
