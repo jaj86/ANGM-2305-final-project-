@@ -2,10 +2,12 @@ import pygame
 import sys
 import random
 
+teleport_cooldown = 2000
+last_teleport_time = 0
+
 TILE_SIZE = 32
 FPS = 60
 
-# character colors
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
@@ -42,7 +44,23 @@ def load_level():
     ]
 
 
-# Collision detection
+#TELEPORT FUNCTION
+def teleport_player(level):
+    global player_x, player_y
+
+    rows = len(level)
+    cols = len(level[0])
+
+    while True:
+        col = random.randint(0, cols - 1)
+        row = random.randint(0, rows - 1)
+
+        if level[row][col] != 1:  # not a wall
+            player_x = col * TILE_SIZE + TILE_SIZE // 2
+            player_y = row * TILE_SIZE + TILE_SIZE // 2
+            return
+
+
 def can_move(level, x, y, direction, speed):
     dx, dy = direction
     r = TILE_SIZE // 2 - 2
@@ -129,24 +147,22 @@ class Enemy:
 
 
 dot_respawn_time = {}
-DOT_RESPAWN_DELAY = 5000  # ms
+DOT_RESPAWN_DELAY = 5000
 
 
 def main():
+    global player_x, player_y
     pygame.init()
     screen = pygame.display.set_mode((1280, 720), pygame.RESIZABLE)
     pygame.display.set_caption("Jewel Collector")
     clock = pygame.time.Clock()
 
-    # player sprite
     player_img = pygame.image.load("player.png").convert_alpha()
     player_img = pygame.transform.scale(player_img, (TILE_SIZE, TILE_SIZE))
 
-    # dot sprite
     dot_img = pygame.image.load("Diamond.png").convert_alpha()
     dot_img = pygame.transform.scale(dot_img, (10, 10))
 
-    # rotated sprites
     player_sprites = {
         DIR_RIGHT: player_img,
         DIR_LEFT: pygame.transform.flip(player_img, True, False),
@@ -154,13 +170,12 @@ def main():
         DIR_DOWN: pygame.transform.rotate(player_img, -90),
     }
 
-    # enemy sprite
     enemy_img = pygame.image.load("enemy.png").convert_alpha()
     enemy_img = pygame.transform.scale(enemy_img, (TILE_SIZE, TILE_SIZE))
 
     level = load_level()
 
-    # player start bottom row
+    # bottom-row spawn
     player_x = 1 * TILE_SIZE + TILE_SIZE // 2
     player_y = 13 * TILE_SIZE + TILE_SIZE // 2
 
@@ -179,11 +194,15 @@ def main():
 
     running = True
     while running:
-
-        # EVENTS
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    if pygame.time.get_ticks() - last_teleport_time > teleport_cooldown:
+                        teleport_player(level)
+                        globals()['last_teleport_time'] = pygame.time.get_ticks()
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]: desired_dir = DIR_LEFT
@@ -191,7 +210,11 @@ def main():
         elif keys[pygame.K_UP]: desired_dir = DIR_UP
         elif keys[pygame.K_DOWN]: desired_dir = DIR_DOWN
 
-        # center check
+        now = pygame.time.get_ticks()
+
+        # Auto teleport
+        
+
         on_center = (
             player_x % TILE_SIZE == TILE_SIZE // 2 and
             player_y % TILE_SIZE == TILE_SIZE // 2
@@ -200,7 +223,6 @@ def main():
         if on_center and can_move(level, player_x, player_y, desired_dir, speed):
             current_dir = desired_dir
 
-        # MOVE
         if can_move(level, player_x, player_y, current_dir, speed):
             dx, dy = current_dir
             player_x += dx * speed
@@ -221,9 +243,8 @@ def main():
         if level[row][col] == 2:
             level[row][col] = 0
             score += 10
-            dot_respawn_time[(row, col)] = pygame.time.get_ticks()
+            dot_respawn_time[(row, col)] = now
 
-        now = pygame.time.get_ticks()
         for (r, c), t in list(dot_respawn_time.items()):
             if now - t > DOT_RESPAWN_DELAY:
                 level[r][c] = 2
@@ -250,7 +271,7 @@ def main():
         font = pygame.font.SysFont(None, 30)
         screen.blit(font.render(f"Score: {score}", True, WHITE), (10, 10))
 
-        # GAME OVER + RETRY
+        # GAME OVER
         if game_over:
             msg = font.render("GAME OVER!", True, RED)
             retry_msg = font.render("Press any key to retry", True, WHITE)
@@ -259,7 +280,6 @@ def main():
             screen.blit(retry_msg, (640 - retry_msg.get_width() // 2, 360))
             pygame.display.flip()
 
-            # Wait for key
             waiting = True
             while waiting:
                 for event in pygame.event.get():
@@ -267,7 +287,7 @@ def main():
                         pygame.quit()
                         sys.exit()
                     if event.type == pygame.KEYDOWN:
-                        return main()  # restart
+                        return main()
 
         pygame.display.flip()
         clock.tick(FPS)
@@ -278,3 +298,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
